@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import RenderResults from './render-result';
 import useThemeSwitching from './use-theme-switching';
+import _sidebar from '@/utils/_sidebar';
 
 export default function KBar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -22,31 +23,31 @@ export default function KBar({ children }: { children: React.ReactNode }) {
       router.push(url);
     };
 
-    return navItems.flatMap((navItem) => {
+    return _sidebar.flatMap((navItem) => {
       // Only include base action if the navItem has a real URL and is not just a container
       const baseAction =
-        navItem.url !== '#'
+        navItem.href !== '#'
           ? {
               id: `${navItem.title.toLowerCase()}Action`,
               name: navItem.title,
-              shortcut: navItem.shortcut,
+              // shortcut: navItem.shortcut,
               keywords: navItem.title.toLowerCase(),
               section: 'Navigation',
               subtitle: `Go to ${navItem.title}`,
-              perform: () => navigateTo(navItem.url)
+              perform: () => navigateTo(navItem.href)
             }
           : null;
 
       // Map child items into actions
       const childActions =
-        navItem.items?.map((childItem) => ({
+        navItem.children?.map((childItem) => ({
           id: `${childItem.title.toLowerCase()}Action`,
           name: childItem.title,
-          shortcut: childItem.shortcut,
+          // shortcut: childItem.shortcut,
           keywords: childItem.title.toLowerCase(),
           section: navItem.title,
           subtitle: `Go to ${childItem.title}`,
-          perform: () => navigateTo(childItem.url)
+          perform: () => navigateTo(childItem.href)
         })) ?? [];
 
       // Return only valid actions (ignoring null base actions for containers)

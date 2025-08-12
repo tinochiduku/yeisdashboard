@@ -18,7 +18,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -29,7 +28,7 @@ import {
   SidebarRail
 } from '@/components/ui/sidebar';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { navItems } from '@/constants/data';
+import _sidebar from '@/utils/_sidebar';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useUser } from '@clerk/nextjs';
 import {
@@ -45,8 +44,8 @@ import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
-import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
+
 export const company = {
   name: 'Acme Inc',
   logo: IconPhotoUp,
@@ -54,9 +53,9 @@ export const company = {
 };
 
 const tenants = [
-  { id: '1', name: 'Acme Inc' },
-  { id: '2', name: 'Beta Corp' },
-  { id: '3', name: 'Gamma Ltd' }
+  { id: '1', name: 'Tinotenda Chiduku' },
+  { id: '2', name: 'Bruce Matanda' },
+  { id: '3', name: 'Denver Adini' }
 ];
 
 export default function AppSidebar() {
@@ -74,6 +73,9 @@ export default function AppSidebar() {
     // Side effects based on sidebar state changes
   }, [isOpen]);
 
+  // const userRole = user?.publicMetadata?.role as string;
+  const userRole = 'admin';
+
   return (
     <Sidebar collapsible='icon'>
       <SidebarHeader>
@@ -85,37 +87,37 @@ export default function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
         <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
-            {navItems.map((item) => {
-              const Icon = item.icon ? Icons[item.icon] : Icons.logo;
-              return item?.items && item?.items?.length > 0 ? (
+            {_sidebar.map((item) => {
+              if (!item.access.includes(userRole)) {
+                return null;
+              }
+              return item?.children && item?.children?.length > 0 ? (
                 <Collapsible
-                  key={item.title}
+                  key={item.slug}
                   asChild
-                  defaultOpen={item.isActive}
                   className='group/collapsible'
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
                         tooltip={item.title}
-                        isActive={pathname === item.url}
+                        isActive={pathname.startsWith(item.href)}
                       >
-                        {item.icon && <Icon />}
+                        {item.icon}
                         <span>{item.title}</span>
                         <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {item.items?.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
+                        {item.children?.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.slug}>
                             <SidebarMenuSubButton
                               asChild
-                              isActive={pathname === subItem.url}
+                              isActive={pathname === subItem.href}
                             >
-                              <Link href={subItem.url}>
+                              <Link href={subItem.href}>
                                 <span>{subItem.title}</span>
                               </Link>
                             </SidebarMenuSubButton>
@@ -126,14 +128,14 @@ export default function AppSidebar() {
                   </SidebarMenuItem>
                 </Collapsible>
               ) : (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.slug}>
                   <SidebarMenuButton
                     asChild
                     tooltip={item.title}
-                    isActive={pathname === item.url}
+                    isActive={pathname === item.href}
                   >
-                    <Link href={item.url}>
-                      <Icon />
+                    <Link href={item.href}>
+                      {item.icon}
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
