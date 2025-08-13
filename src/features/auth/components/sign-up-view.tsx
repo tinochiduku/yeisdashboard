@@ -40,16 +40,7 @@ export default function SignUpViewPage({ stars }: { stars: number }) {
           </svg>
           Logo
         </div>
-        <div className='relative z-20 mt-auto'>
-          <blockquote className='space-y-2'>
-            <p className='text-lg'>
-              &ldquo;This starter template has saved me countless hours of work
-              and helped me deliver projects to my clients faster than ever
-              before.&rdquo;
-            </p>
-            <footer className='text-sm'>Random Dude</footer>
-          </blockquote>
-        </div>
+        <div className='relative z-20 mt-auto'></div>
       </div>
       <div className='flex h-full items-center justify-center p-4 lg:p-8'>
         <div className='flex w-full max-w-md flex-col items-center justify-center space-y-6'>

@@ -14,7 +14,7 @@ export default function Dashboard() {
 
   // const role = user?.publicMetadata?.role;
 
-  const role = 'admin';
+  const role = 'student';
 
   if (role === 'admin') {
     return <AdminDashboard />;
