@@ -64,12 +64,17 @@ import {
   IconNews,
   IconSpeakerphone,
   IconBell,
-  IconFolder
+  IconFolder,
+  IconBuilding,
+  IconDots,
+  IconEdit,
+  IconAdjustmentsHorizontal
 } from '@tabler/icons-react';
 
 export const Icons = {
   // Existing icons
   dashboard: IconLayoutDashboard,
+  schools: IconBuilding,
   logo: IconCommand,
   login: IconLogin,
   close: IconX,
@@ -129,6 +134,7 @@ export const Icons = {
   clipboardCheck: IconClipboardCheck,
   userCheck: IconUserCheck,
   bed: IconBed,
+  edit: IconEdit,
   map: IconMap,
   cash: IconCash,
   wallet: IconWallet,
@@ -140,7 +146,10 @@ export const Icons = {
   news: IconNews,
   bullhorn: IconSpeakerphone,
   bell: IconBell,
+  plus: IconPlus,
   folder: IconFolder,
   calendar: IconCalendar,
-  heartbeat: IconHeartbeat
+  heartbeat: IconHeartbeat,
+  moreHorizontal: IconDots,
+  slidersHorizontal: IconAdjustmentsHorizontal
 };

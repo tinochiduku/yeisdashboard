@@ -543,6 +543,14 @@ const _sidebar = [
     children: []
   },
   {
+    title: 'Schools',
+    href: '/schools',
+    slug: 'schoools',
+    icon: <Icons.schools className='size-4' />,
+    access: ['student', 'staff', 'admin'],
+    children: []
+  },
+  {
     title: 'Purchase Orders',
     href: '/purchase-orders',
     slug: 'purchase-orders',
@@ -590,6 +598,13 @@ const _sidebar = [
         href: '/system/file-storage',
         slug: 'file-storage',
         icon: <Icons.folder className='size-4' />,
+        children: []
+      },
+      {
+        title: 'API Documentation',
+        href: '/doc',
+        slug: 'doc',
+        icon: <Icons.product className='size-4' />,
         children: []
       }
     ]
