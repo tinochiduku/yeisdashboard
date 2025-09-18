@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db
     .select()
     .from(hostelRooms)
@@ -77,7 +77,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedHostelRoom = await db
     .update(hostelRooms)
@@ -116,7 +116,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedHostelRoom = await db
     .delete(hostelRooms)
     .where(eq(hostelRooms.id, id))

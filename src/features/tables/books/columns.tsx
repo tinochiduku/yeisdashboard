@@ -34,6 +34,18 @@ export const columns: ColumnDef<InferSelectModel<typeof libraryBooks>>[] = [
     header: 'AUTHOR'
   },
   {
+    accessorKey: 'isbn',
+    header: 'ISBN'
+  },
+  {
+    accessorKey: 'publisher',
+    header: 'PUBLISHER'
+  },
+  {
+    accessorKey: 'price',
+    header: 'PRICE'
+  },
+  {
     accessorKey: 'category',
     header: 'CATEGORY'
   },

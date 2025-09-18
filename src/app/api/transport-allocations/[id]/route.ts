@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db
     .select()
     .from(transportAllocations)
@@ -77,7 +77,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedTransportAllocation = await db
     .update(transportAllocations)
@@ -116,7 +116,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedTransportAllocation = await db
     .delete(transportAllocations)
     .where(eq(transportAllocations.id, id))

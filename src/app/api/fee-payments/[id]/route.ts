@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db
     .select()
     .from(feePayments)
@@ -78,7 +78,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedFeePayment = await db
     .update(feePayments)
@@ -117,7 +117,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedFeePayment = await db
     .delete(feePayments)
     .where(eq(feePayments.id, id))

@@ -11,6 +11,7 @@ import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { schools } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
+import { toast } from 'sonner';
 
 interface CellActionProps {
   data: InferSelectModel<typeof schools>;
@@ -30,11 +31,27 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem
-            onClick={() => router.push(`/dashboard/schools/${data.id}`)}
+            onClick={() => router.push(`/schools/edit?id=${data.id}`)}
           >
             <Icons.edit className='mr-2 h-4 w-4' /> Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => {}}>
+          <DropdownMenuItem onClick={() => {
+            const handleDelete = async () => {
+              try {
+                const res = await fetch(`/api/schools/${data.id}`, { method: 'DELETE' });
+                if (res.ok) {
+                  toast.success('School deleted successfully');
+                  router.refresh();
+                } else {
+                  toast.error('Failed to delete school');
+                }
+              } catch (error) {
+                toast.error('An error occurred while deleting');
+              }
+            };
+
+            handleDelete();
+          }}>
             <Icons.trash className='mr-2 h-4 w-4' /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -5,6 +5,33 @@ import { eq } from 'drizzle-orm';
 
 /**
  * @swagger
+ * /api/users:
+ *   post:
+ *     description: Creates a new user
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       201:
+ *         description: The created user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
+export async function POST(request: Request) {
+  const body = await request.json();
+  const newUser = await db.insert(users).values(body).returning();
+  return NextResponse.json(newUser[0], { status: 201 });
+}
+
+/**
+ * @swagger
  * /api/users/{id}:
  *   get:
  *     description: Returns a single user by ID
@@ -30,7 +57,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db.select().from(users).where(eq(users.id, id));
   if (data.length === 0) {
     return NextResponse.json({ message: 'User not found' }, { status: 404 });
@@ -71,7 +98,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedUser = await db
     .update(users)
@@ -107,7 +134,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
+
   const deletedUser = await db
     .delete(users)
     .where(eq(users.id, id))

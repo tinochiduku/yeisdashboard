@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db
     .select()
     .from(libraryBooks)
@@ -77,7 +77,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedLibraryBook = await db
     .update(libraryBooks)
@@ -116,7 +116,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedLibraryBook = await db
     .delete(libraryBooks)
     .where(eq(libraryBooks.id, id))

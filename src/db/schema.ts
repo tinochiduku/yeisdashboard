@@ -121,7 +121,8 @@ export const leaveType = pgEnum("leave_type", [
 
 // Users table - Central authentication
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: varchar("id", { length: 255 }).unique(),
+  userId: uuid("userId").primaryKey().defaultRandom(),
   email: varchar("email", { length: 255 }).unique().notNull(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   role: userRole("role").notNull(),
@@ -208,7 +209,7 @@ export const subjects = pgTable("subjects", {
 // Staff/Teachers
 export const staff = pgTable("staff", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").references(() => users.userId),
   schoolId: uuid("school_id").references(() => schools.id),
   employeeId: varchar("employee_id", { length: 50 }).unique(),
   firstName: varchar("first_name", { length: 100 }).notNull(),
@@ -243,7 +244,7 @@ export const staff = pgTable("staff", {
 // Students
 export const students = pgTable("students", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").references(() => users.userId),
   schoolId: uuid("school_id").references(() => schools.id),
   classId: uuid("class_id").references(() => classes.id),
   admissionNumber: varchar("admission_number", { length: 50 }).unique(),
@@ -273,7 +274,7 @@ export const students = pgTable("students", {
 // Parents/Guardians
 export const parents = pgTable("parents", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").references(() => users.userId),
   firstName: varchar("first_name", { length: 100 }).notNull(),
   lastName: varchar("last_name", { length: 100 }).notNull(),
   relationship: varchar("relationship", { length: 50 }).notNull(), // Father, Mother, Guardian
@@ -348,7 +349,7 @@ export const attendance = pgTable("attendance", {
   date: date("date").notNull(),
   status: attendanceStatus("status").notNull(),
   remarks: text("remarks"),
-  markedBy: uuid("marked_by").references(() => users.id),
+  markedBy: uuid("marked_by").references(() => users.userId),
   markedAt: timestamp("marked_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -399,7 +400,7 @@ export const grades = pgTable("grades", {
   percentage: decimal("percentage", { precision: 5, scale: 2 }),
   remarks: text("remarks"),
   teacherId: uuid("teacher_id").references(() => staff.id),
-  enteredBy: uuid("entered_by").references(() => users.id),
+  enteredBy: uuid("entered_by").references(() => users.userId),
   enteredAt: timestamp("entered_at").defaultNow(),
   isPublished: boolean("is_published").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -435,7 +436,7 @@ export const feePayments = pgTable("fee_payments", {
   receiptNumber: varchar("receipt_number", { length: 100 }),
   remarks: text("remarks"),
   status: paymentStatus("status").default("pending"),
-  processedBy: uuid("processed_by").references(() => users.id),
+  processedBy: uuid("processed_by").references(() => users.userId),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -454,7 +455,7 @@ export const events = pgTable("events", {
   isPublic: boolean("is_public").default(true),
   requiresRegistration: boolean("requires_registration").default(false),
   maxParticipants: integer("max_participants"),
-  createdBy: uuid("created_by").references(() => users.id),
+  createdBy: uuid("created_by").references(() => users.userId),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -471,7 +472,7 @@ export const announcements = pgTable("announcements", {
   publishDate: timestamp("publish_date").defaultNow(),
   expiryDate: timestamp("expiry_date"),
   attachments: jsonb("attachments"),
-  createdBy: uuid("created_by").references(() => users.id),
+  createdBy: uuid("created_by").references(() => users.userId),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -480,7 +481,7 @@ export const announcements = pgTable("announcements", {
 export const communications = pgTable("communications", {
   id: uuid("id").primaryKey().defaultRandom(),
   schoolId: uuid("school_id").references(() => schools.id),
-  senderId: uuid("sender_id").references(() => users.id),
+  senderId: uuid("sender_id").references(() => users.userId),
   recipientType: varchar("recipient_type", { length: 50 }).notNull(), // individual, group, class, all
   recipientIds: jsonb("recipient_ids"), // Array of user IDs
   type: communicationType("type").notNull(),
@@ -584,7 +585,7 @@ export const visitors = pgTable("visitors", {
   visitDate: date("visit_date").notNull(),
   checkInTime: timestamp("check_in_time"),
   checkOutTime: timestamp("check_out_time"),
-  approvedBy: uuid("approved_by").references(() => users.id),
+  approvedBy: uuid("approved_by").references(() => users.userId),
   remarks: text("remarks"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -593,7 +594,7 @@ export const visitors = pgTable("visitors", {
 export const leaves = pgTable("leaves", {
   id: uuid("id").primaryKey().defaultRandom(),
   schoolId: uuid("school_id").references(() => schools.id),
-  applicantId: uuid("applicant_id").references(() => users.id),
+  applicantId: uuid("applicant_id").references(() => users.userId),
   applicantType: varchar("applicant_type", { length: 20 }).notNull(), // staff, student
   leaveType: leaveType("leave_type").notNull(),
   startDate: date("start_date").notNull(),
@@ -601,7 +602,7 @@ export const leaves = pgTable("leaves", {
   days: integer("days").notNull(),
   reason: text("reason").notNull(),
   status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected
-  approvedBy: uuid("approved_by").references(() => users.id),
+  approvedBy: uuid("approved_by").references(() => users.userId),
   approvedAt: timestamp("approved_at"),
   rejectionReason: text("rejection_reason"),
   attachments: jsonb("attachments"),
@@ -718,8 +719,8 @@ export const libraryIssues = pgTable("library_issues", {
   finePaid: boolean("fine_paid").default(false),
   bookCondition: varchar("book_condition", { length: 50 }).default("good"),
   remarks: text("remarks"),
-  issuedBy: uuid("issued_by").references(() => users.id),
-  returnedBy: uuid("returned_by").references(() => users.id),
+  issuedBy: uuid("issued_by").references(() => users.userId),
+  returnedBy: uuid("returned_by").references(() => users.userId),
   status: varchar("status", { length: 20 }).default("issued"), // issued, returned, overdue, lost
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -757,7 +758,7 @@ export const cafeteriaOrders = pgTable("cafeteria_orders", {
   paymentStatus: paymentStatus("payment_status").default("pending"),
   orderStatus: varchar("order_status", { length: 20 }).default("pending"), // pending, preparing, ready, served, cancelled
   specialInstructions: text("special_instructions"),
-  servedBy: uuid("served_by").references(() => users.id),
+  servedBy: uuid("served_by").references(() => users.userId),
   servedAt: timestamp("served_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -873,7 +874,7 @@ export const certificates = pgTable("certificates", {
   certificateNumber: varchar("certificate_number", { length: 100 }),
   templateId: varchar("template_id", { length: 100 }),
   digitalCertificate: varchar("digital_certificate", { length: 500 }),
-  issuedBy: uuid("issued_by").references(() => users.id),
+  issuedBy: uuid("issued_by").references(() => users.userId),
   verificationCode: varchar("verification_code", { length: 100 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -889,7 +890,7 @@ export const maintenanceRequests = pgTable("maintenance_requests", {
   location: varchar("location", { length: 255 }),
   priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, urgent
   category: varchar("category", { length: 100 }), // electrical, plumbing, carpentry, painting, etc.
-  reportedBy: uuid("reported_by").references(() => users.id),
+  reportedBy: uuid("reported_by").references(() => users.userId),
   assignedTo: uuid("assigned_to").references(() => staff.id),
   status: varchar("status", { length: 20 }).default("pending"), // pending, in_progress, completed, cancelled
   estimatedCost: decimal("estimated_cost", { precision: 10, scale: 2 }),
@@ -936,11 +937,11 @@ export const purchaseOrders = pgTable("purchase_orders", {
   discountAmount: decimal("discount_amount", { precision: 12, scale: 2 }),
   finalAmount: decimal("final_amount", { precision: 12, scale: 2 }).notNull(),
   status: varchar("status", { length: 20 }).default("pending"), // pending, approved, ordered, received, cancelled
-  approvedBy: uuid("approved_by").references(() => users.id),
-  receivedBy: uuid("received_by").references(() => users.id),
+  approvedBy: uuid("approved_by").references(() => users.userId),
+  receivedBy: uuid("received_by").references(() => users.userId),
   remarks: text("remarks"),
   attachments: jsonb("attachments"),
-  createdBy: uuid("created_by").references(() => users.id),
+  createdBy: uuid("created_by").references(() => users.userId),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -987,8 +988,8 @@ export const payrollRecords = pgTable("payroll_records", {
   paymentMethod: paymentMethod("payment_method"),
   paymentReference: varchar("payment_reference", { length: 255 }),
   status: varchar("status", { length: 20 }).default("pending"), // pending, processed, paid
-  generatedBy: uuid("generated_by").references(() => users.id),
-  approvedBy: uuid("approved_by").references(() => users.id),
+  generatedBy: uuid("generated_by").references(() => users.userId),
+  approvedBy: uuid("approved_by").references(() => users.userId),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1017,8 +1018,8 @@ export const expenses = pgTable("expenses", {
   vendorId: uuid("vendor_id").references(() => vendors.id),
   receipts: jsonb("receipts"), // Array of receipt URLs
   status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected, paid
-  submittedBy: uuid("submitted_by").references(() => users.id),
-  approvedBy: uuid("approved_by").references(() => users.id),
+  submittedBy: uuid("submitted_by").references(() => users.userId),
+  approvedBy: uuid("approved_by").references(() => users.userId),
   approvalDate: date("approval_date"),
   rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1035,7 +1036,7 @@ export const systemSettings = pgTable("system_settings", {
   category: varchar("category", { length: 100 }), // general, academic, financial, etc.
   description: text("description"),
   isEditable: boolean("is_editable").default(true),
-  updatedBy: uuid("updated_by").references(() => users.id),
+  updatedBy: uuid("updated_by").references(() => users.userId),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1044,7 +1045,7 @@ export const systemSettings = pgTable("system_settings", {
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   schoolId: uuid("school_id").references(() => schools.id),
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").references(() => users.userId),
   action: varchar("action", { length: 255 }).notNull(),
   tableName: varchar("table_name", { length: 100 }),
   recordId: uuid("record_id"),
@@ -1059,7 +1060,7 @@ export const auditLogs = pgTable("audit_logs", {
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),
   schoolId: uuid("school_id").references(() => schools.id),
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").references(() => users.userId),
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
   type: varchar("type", { length: 50 }).notNull(), // info, warning, error, success
@@ -1078,7 +1079,7 @@ export const fileStorage = pgTable("file_storage", {
   filePath: varchar("file_path", { length: 500 }).notNull(),
   fileSize: integer("file_size").notNull(),
   mimeType: varchar("mime_type", { length: 100 }).notNull(),
-  uploadedBy: uuid("uploaded_by").references(() => users.id),
+  uploadedBy: uuid("uploaded_by").references(() => users.userId),
   isPublic: boolean("is_public").default(false),
   tags: jsonb("tags"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1086,9 +1087,9 @@ export const fileStorage = pgTable("file_storage", {
 
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
-  staff: one(staff, { fields: [users.id], references: [staff.userId] }),
-  student: one(students, { fields: [users.id], references: [students.userId] }),
-  parent: one(parents, { fields: [users.id], references: [parents.userId] }),
+  staff: one(staff, { fields: [users.userId], references: [staff.userId] }),
+  student: one(students, { fields: [users.userId], references: [students.userId] }),
+  parent: one(parents, { fields: [users.userId], references: [parents.userId] }),
   createdAnnouncements: many(announcements),
   sentCommunications: many(communications),
   auditLogs: many(auditLogs),
@@ -1127,7 +1128,7 @@ export const schoolsRelations = relations(schools, ({ many }) => ({
 }));
 
 export const studentsRelations = relations(students, ({ one, many }) => ({
-  user: one(users, { fields: [students.userId], references: [users.id] }),
+  user: one(users, { fields: [students.userId], references: [users.userId] }),
   school: one(schools, {
     fields: [students.schoolId],
     references: [schools.id],
@@ -1151,7 +1152,7 @@ export const studentsRelations = relations(students, ({ one, many }) => ({
 }));
 
 export const staffRelations = relations(staff, ({ one, many }) => ({
-  user: one(users, { fields: [staff.userId], references: [users.id] }),
+  user: one(users, { fields: [staff.userId], references: [users.userId] }),
   school: one(schools, { fields: [staff.schoolId], references: [schools.id] }),
   classSubjects: many(classSubjects),
   timetable: many(timetable),
@@ -1170,7 +1171,7 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 }));
 
 export const parentsRelations = relations(parents, ({ one, many }) => ({
-  user: one(users, { fields: [parents.userId], references: [users.id] }),
+  user: one(users, { fields: [parents.userId], references: [users.userId] }),
   students: many(studentParents),
 }));
 

@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db.select().from(attendance).where(eq(attendance.id, id));
   if (data.length === 0) {
     return NextResponse.json(
@@ -74,7 +74,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedAttendance = await db
     .update(attendance)
@@ -113,7 +113,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedAttendance = await db
     .delete(attendance)
     .where(eq(attendance.id, id))

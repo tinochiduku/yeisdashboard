@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db.select().from(timetable).where(eq(timetable.id, id));
   if (data.length === 0) {
     return NextResponse.json(
@@ -74,7 +74,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedTimetable = await db
     .update(timetable)
@@ -113,7 +113,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedTimetable = await db
     .delete(timetable)
     .where(eq(timetable.id, id))

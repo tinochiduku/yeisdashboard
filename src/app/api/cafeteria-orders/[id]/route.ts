@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db
     .select()
     .from(cafeteriaOrders)
@@ -77,7 +77,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedCafeteriaOrder = await db
     .update(cafeteriaOrders)
@@ -116,7 +116,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedCafeteriaOrder = await db
     .delete(cafeteriaOrders)
     .where(eq(cafeteriaOrders.id, id))

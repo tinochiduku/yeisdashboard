@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db.select().from(terms).where(eq(terms.id, id));
   if (data.length === 0) {
     return NextResponse.json({ message: 'Term not found' }, { status: 404 });
@@ -71,7 +71,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedTerm = await db
     .update(terms)
@@ -107,7 +107,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedTerm = await db
     .delete(terms)
     .where(eq(terms.id, id))

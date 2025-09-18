@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db.select().from(events).where(eq(events.id, id));
   if (data.length === 0) {
     return NextResponse.json({ message: 'Event not found' }, { status: 404 });
@@ -71,7 +71,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedEvent = await db
     .update(events)
@@ -107,7 +107,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedEvent = await db
     .delete(events)
     .where(eq(events.id, id))

@@ -30,12 +30,24 @@ export const columns: ColumnDef<InferSelectModel<typeof users>>[] = [
     header: 'EMAIL'
   },
   {
+    accessorKey: 'firstName',
+    header: 'FIRSTNAME'
+  },
+  {
+    accessorKey: 'lastName',
+    header: 'LASTNAME'
+  },
+  {
     accessorKey: 'role',
     header: 'ROLE'
   },
   {
     accessorKey: 'isActive',
     header: 'ACTIVE'
+  },
+  {
+    accessorKey: 'isPending',
+    header: 'PENDING'
   },
   {
     id: 'actions',

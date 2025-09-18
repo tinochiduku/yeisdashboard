@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db.select().from(auditLogs).where(eq(auditLogs.id, id));
   if (data.length === 0) {
     return NextResponse.json(

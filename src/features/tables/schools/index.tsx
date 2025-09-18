@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import Link from 'next/link';
 
 const SchoolsPage = ({data = []}: any) => {
   return (
@@ -22,10 +23,12 @@ const SchoolsPage = ({data = []}: any) => {
               A list of all the schools in your system.
             </CardDescription>
           </div>
-          <Button>
-            <Icons.plus className='mr-2 size-4' />
-            Add School
-          </Button>
+          <Link href="/schools/new">
+            <Button>
+              <Icons.plus className='mr-2 size-4' />
+              Add School
+            </Button>
+          </Link>
         </div>
       </CardHeader>
       <CardContent>

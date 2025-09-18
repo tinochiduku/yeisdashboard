@@ -30,7 +30,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const data = await db.select().from(vendors).where(eq(vendors.id, id));
   if (data.length === 0) {
     return NextResponse.json({ message: 'Vendor not found' }, { status: 404 });
@@ -71,7 +71,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const updatedVendor = await db
     .update(vendors)
@@ -107,7 +107,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const deletedVendor = await db
     .delete(vendors)
     .where(eq(vendors.id, id))

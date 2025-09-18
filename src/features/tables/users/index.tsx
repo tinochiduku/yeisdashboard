@@ -10,8 +10,26 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import { useEffect, useState } from 'react';
+import { getData } from '@/utils/requests/dataQuery';
 
 const UsersPage = () => {
+
+  const [ users, setUsers ] = useState([])
+
+  useEffect(() => {
+    let sub = false
+    
+    if (!sub) { 
+      (async function() {
+        const data = await getData({title: 'Fetch Users', url: '/api/users'})
+        setUsers(data)
+      })()
+    }
+
+    return () => { sub = true }
+  }, [])
+
   return (
     <Card>
       <CardHeader>
@@ -29,7 +47,7 @@ const UsersPage = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={[]} />
+        <DataTable columns={columns} data={users} />
       </CardContent>
     </Card>
   );

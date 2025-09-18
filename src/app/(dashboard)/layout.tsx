@@ -25,7 +25,7 @@ export default async function DashboardLayout({
         <SidebarInset>
           <Header />
           {/* page main content */}
-          <div className='px-4'>{children}</div>
+          <div className='px-4 pb-20 overflow-y-scroll h-screen'>{children}</div>
           {/* page main content ends */}
         </SidebarInset>
       </SidebarProvider>

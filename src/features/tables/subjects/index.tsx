@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import Link from 'next/link';
 
 const SubjectsPage = () => {
   return (
@@ -22,10 +23,12 @@ const SubjectsPage = () => {
               A list of all the subjects in your school.
             </CardDescription>
           </div>
-          <Button>
-            <Icons.plus className='mr-2 size-4' />
-            Add Subject
-          </Button>
+          <Link href="/academic/students/new">
+            <Button>
+              <Icons.plus className='mr-2 size-4' />
+              Add Subject
+            </Button>
+          </Link>
         </div>
       </CardHeader>
       <CardContent>

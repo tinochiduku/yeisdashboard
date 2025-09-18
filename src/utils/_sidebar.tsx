@@ -3,7 +3,7 @@ import { Icons } from '@/components/icons';
 const _sidebar = [
   {
     title: 'Dashboard',
-    href: '/dashboard',
+    href: '/overview',
     slug: 'dashboard',
     icon: <Icons.dashboard className='size-4' />,
     access: ['student', 'staff', 'admin'],
@@ -70,7 +70,7 @@ const _sidebar = [
       {
         title: 'All Students',
         href: '/students',
-        slug: 'students-list',
+        slug: 'students',
         icon: <Icons.students className='size-4' />,
         children: []
       },
@@ -120,7 +120,7 @@ const _sidebar = [
     children: [
       {
         title: 'All Staff',
-        href: '/staff',
+        href: '/staff/staff-list',
         slug: 'staff-list',
         icon: <Icons.staff className='size-4' />,
         children: []
@@ -141,7 +141,7 @@ const _sidebar = [
       },
       {
         title: 'Attendance',
-        href: '/staff/attendance',
+        href: '/staff/staff-attendance',
         slug: 'staff-attendance',
         icon: <Icons.clipboardCheck className='size-4' />,
         children: []
@@ -545,7 +545,7 @@ const _sidebar = [
   {
     title: 'Schools',
     href: '/schools',
-    slug: 'schoools',
+    slug: 'schools',
     icon: <Icons.schools className='size-4' />,
     access: ['student', 'staff', 'admin'],
     children: []
