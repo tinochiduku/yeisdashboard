@@ -11,6 +11,7 @@ import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { subjects } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
+import { deleteData } from '@/utils/requests/dataQuery';
 
 interface CellActionProps {
   data: InferSelectModel<typeof subjects>;
@@ -30,11 +31,14 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem
-            onClick={() => router.push(`/dashboard/subjects/${data.id}`)}
+            onClick={() => router.push(`/academic/subjects/edit?subjectId=${data.id}`)}
           >
             <Icons.edit className='mr-2 h-4 w-4' /> Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => {}}>
+          <DropdownMenuItem onClick={() => {
+            deleteData({title: 'Delete Subject', url: `/api/subjects/${data.id}`})
+            router.refresh()
+          }}>
             <Icons.trash className='mr-2 h-4 w-4' /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

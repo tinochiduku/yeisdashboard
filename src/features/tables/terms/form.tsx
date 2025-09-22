@@ -24,8 +24,13 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { useEffect, useState } from 'react';
+import { getData, postData, putData } from '@/utils/requests/dataQuery';
+import { toast } from 'sonner';
+import { Combobox } from '@/components/ui/combobox';
 
 const formSchema = z.object({
+  academicYearId: z.string(),
   name: z.string(),
   type: z.enum(termType.enumValues),
   startDate: z.string(),
@@ -34,13 +39,22 @@ const formSchema = z.object({
 });
 
 export default function TermForm({
+  id, 
+  edit,
   initialData,
   pageTitle
 }: {
-  initialData: InferSelectModel<typeof terms> | null;
+  id?: string 
+  edit?: boolean
+  initialData?: InferSelectModel<typeof terms> | null;
   pageTitle: string;
 }) {
+
+  const [loading, setLoading] = useState(false)
+  const [academicYears, setAcademicYears] = useState([])
+
   const defaultValues = {
+    academicYearId: initialData?.academicYearId || '',
     name: initialData?.name || '',
     type: initialData?.type || 'first',
     startDate: initialData?.startDate || '',
@@ -54,9 +68,57 @@ export default function TermForm({
     values: defaultValues
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Form submission logic would be implemented here
-  }
+       async function onSubmit(values: z.infer<typeof formSchema>) {
+        const url = edit && id ? `/api/terms/${id}` : '/api/terms';
+        const payload = edit && id ? { ...values, id } : values;
+    
+        try {
+          setLoading(true)
+    
+          if (edit && id) {
+            await putData({title: 'Edit Term', url, values: payload})
+          }
+    
+          if (!edit) {
+            await postData({title: 'Add Term', url, values: payload})
+          }
+    
+        } finally {
+          setLoading(false)
+        }
+    
+      }
+  
+      useEffect(() => {
+        let isMounted = true;
+        
+        const fetchData = async () => {
+              try {
+    
+                  const _years = await getData({ 
+                    title: 'Fetch Academic Years', 
+                    url: `/api/academic-years` 
+                  });
+    
+                  const years_data = _years.map((year:any) => ({ value: year.id, label: year.name}))
+      
+                  setAcademicYears(years_data);
+    
+              } catch (error) {
+                toast.error(`Failed to fetch academic year data: ${error}`);
+              }
+    
+        };
+    
+        if (isMounted) {
+          fetchData();
+        }
+      
+      
+        return () => { 
+          isMounted = false; 
+        };
+      }, [])
 
   return (
     <Card className='mx-auto w-full'>
@@ -69,6 +131,27 @@ export default function TermForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+              <FormField
+                control={form.control}
+                name='academicYearId'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Academic Year</FormLabel>
+                    <FormControl>
+                      <Combobox
+                        options={academicYears}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select Academic Year."
+                        className="w-full"
+                        buttonClassName="bg-blue-50 border-blue-200"
+                        contentClassName="max-h-[300px]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name='name'
@@ -93,7 +176,7 @@ export default function TermForm({
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className='w-full'>
                           <SelectValue placeholder='Select type' />
                         </SelectTrigger>
                       </FormControl>
@@ -155,7 +238,7 @@ export default function TermForm({
                 )}
               />
             </div>
-            <Button type='submit'>Add Term</Button>
+            <Button disabled={loading} type='submit'>{edit ? 'Edit':'Add'} Term</Button>
           </form>
         </Form>
       </CardContent>

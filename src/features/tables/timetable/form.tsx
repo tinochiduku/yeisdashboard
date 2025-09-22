@@ -24,8 +24,15 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
+import { useEffect, useState } from 'react';
+import { getData, postData, putData } from '@/utils/requests/dataQuery';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
+  classId: z.string(),
+  subjectId: z.string(),
+  teacherId: z.string(),
   dayOfWeek: z.enum(dayOfWeek.enumValues),
   startTime: z.string(),
   endTime: z.string(),
@@ -34,13 +41,26 @@ const formSchema = z.object({
 });
 
 export default function TimetableForm({
+  id,
+  edit,
   initialData,
   pageTitle
 }: {
-  initialData: InferSelectModel<typeof timetable> | null;
+  id?: string 
+  edit?: boolean
+  initialData?: InferSelectModel<typeof timetable> | null;
   pageTitle: string;
 }) {
+
+  const [loading, setLoading] = useState(false)
+  const [classes, setClasses] = useState([])
+  const [subjects , setSubjects] = useState([])
+  const [teachers, setTeachers] = useState([])
+  
   const defaultValues = {
+    classId: initialData?.classId || '',
+    subjectId: initialData?.subjectId || '',
+    teacherId: initialData?.teacherId || '',
     dayOfWeek: initialData?.dayOfWeek || 'monday',
     startTime: initialData?.startTime || '',
     endTime: initialData?.endTime || '',
@@ -50,12 +70,77 @@ export default function TimetableForm({
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    values: defaultValues
+    defaultValues
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Form submission logic would be implemented here
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const url = edit && id ? `/api/timetables/${id}` : '/api/timetables';
+    const payload = edit && id ? { ...values, id } : values;
+
+    try {
+      setLoading(true)
+
+      if (edit && id) {
+        await putData({title: 'Edit Entry', url, values: payload})
+      }
+
+      if (!edit) {
+        await postData({title: 'Add Entry', url, values: payload})
+      }
+
+    } finally {
+      setLoading(false)
+    }
+
   }
+
+    useEffect(() => {
+    let isMounted = true;
+    
+    const fetchData = async () => {
+          try {
+
+              const _subjects = await getData({ 
+                title: 'Fetch Subjects', 
+                url: `/api/subjects` 
+              });
+
+              const _teachers = await getData({ 
+                title: 'Fetch Teachers', 
+                url: `/api/staff` 
+              });
+
+              const _classes = await getData({ 
+                title: 'Fetch Classes', 
+                url: `/api/classes` 
+              });
+
+              
+              const filter_teachers = _teachers.filter(({ staffType }: any) => staffType === 'teaching')
+
+              const subjects_data = _subjects.map((subject:any) => ({ value: subject.id, label: subject.name}))
+              const teachers_data = filter_teachers.map((teacher:any) => ({ value: teacher.id, label: `${teacher.firstName} ${teacher.lastName}`}))
+              const classes_data = _classes.map((_class:any) => ({ value: _class.id, label: _class.name}))
+  
+              setSubjects(subjects_data);
+              setTeachers(teachers_data);
+              setClasses(classes_data);
+
+          } catch (error) {
+            toast.error(`Failed to fetch user data: ${error}`);
+          }
+
+    };
+
+    if (isMounted) {
+      fetchData();
+    }
+  
+  
+    return () => { 
+      isMounted = false; 
+    };
+  }, [])
 
   return (
     <Card className='mx-auto w-full'>
@@ -68,6 +153,69 @@ export default function TimetableForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+               <FormField
+                  control={form.control}
+                  name='classId'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Class</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          options={classes}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select a class..."
+                          className="w-full"
+                          buttonClassName="bg-blue-50 border-blue-200"
+                          contentClassName="max-h-[300px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+               <FormField
+                  control={form.control}
+                  name='subjectId'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subject</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          options={subjects}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select a subject..."
+                          className="w-full"
+                          buttonClassName="bg-blue-50 border-blue-200"
+                          contentClassName="max-h-[300px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+               <FormField
+                  control={form.control}
+                  name='teacherId'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teacher</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          options={teachers}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select a teacher..."
+                          className="w-full"
+                          buttonClassName="bg-blue-50 border-blue-200"
+                          contentClassName="max-h-[300px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <FormField
                 control={form.control}
                 name='dayOfWeek'
@@ -79,7 +227,7 @@ export default function TimetableForm({
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className='w-full'>
                           <SelectValue placeholder='Select a day' />
                         </SelectTrigger>
                       </FormControl>
@@ -154,7 +302,7 @@ export default function TimetableForm({
                 )}
               />
             </div>
-            <Button type='submit'>Add Timetable Entry</Button>
+            <Button disabled={loading} type='submit'>{edit ? 'Edit Timetable Entry' : 'Add Timetable Entry'}</Button>
           </form>
         </Form>
       </CardContent>

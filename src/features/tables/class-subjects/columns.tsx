@@ -26,6 +26,22 @@ export const columns: ColumnDef<InferSelectModel<typeof classSubjects>>[] = [
     enableHiding: false
   },
   {
+    accessorKey: 'id',
+    header: 'ID',
+  },
+  {
+    accessorKey: 'teacherName',
+    header: 'Teacher'
+  },
+  {
+    accessorKey: 'subjectName',
+    header: 'Subject'
+  },
+  {
+    accessorKey: 'className',
+    header: 'Class'
+  },
+  {
     accessorKey: 'isActive',
     header: 'ACTIVE'
   },

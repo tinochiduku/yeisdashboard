@@ -55,12 +55,11 @@ export const  putData = async ({ title, url, values }: {title: string, url: stri
     } 
 }
 
-export const  deleteData = async ({ title, url, values }: {title: string, url: string, values: {}}) => {
+export const  deleteData = async ({ title, url }: {title: string, url: string}) => {
     try {
         const res = await fetch(url, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(values),
         })
 
         if (res.ok) {

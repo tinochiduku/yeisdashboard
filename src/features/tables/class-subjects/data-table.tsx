@@ -54,6 +54,11 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
+    initialState: {
+      columnVisibility: {
+        id: false
+      }
+    },
     state: {
       sorting,
       columnFilters,

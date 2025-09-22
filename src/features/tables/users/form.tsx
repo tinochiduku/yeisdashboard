@@ -64,7 +64,7 @@ export default function UserForm({
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    values: defaultValues
+    defaultValues
   });
 
   const isUserAlreadyAdded = async (id: string | undefined) => {

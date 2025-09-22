@@ -42,7 +42,7 @@ export default function ParentForm({
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    values: defaultValues
+    defaultValues
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {

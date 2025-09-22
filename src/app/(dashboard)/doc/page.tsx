@@ -6,7 +6,7 @@ import 'swagger-ui-react/swagger-ui.css';
 export default function SwaggerPage() {
   return (
     <section className='h-screen overflow-y-scroll p-4'>
-      <SwaggerUI url='/api/doc' />
+      <SwaggerUI docExpansion='none' url='/api/doc' />
     </section>
   );
 }

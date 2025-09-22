@@ -25,7 +25,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
-import { getData, postData } from '@/utils/requests/dataQuery';
+import { getData, postData, putData } from '@/utils/requests/dataQuery';
 import { Combobox } from '@/components/ui/combobox';
 import { toast } from 'sonner';
 
@@ -111,10 +111,13 @@ export default function StudentForm({
       setLoading(true)
 
       if (edit && id) {
-        await postData({title: 'Edit Student', url, values: payload})
+        await putData({title: 'Edit Student', url, values: payload})
       }
 
-      await postData({title: 'Add Student', url, values: payload})
+      if (!edit) {
+        await postData({title: 'Add Student', url, values: payload})
+      }
+
 
     } finally {
       setLoading(false)

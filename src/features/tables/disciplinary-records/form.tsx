@@ -49,7 +49,7 @@ export default function DisciplinaryRecordForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     //@ts-ignore
-    values: defaultValues
+    defaultValues
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
