@@ -28,6 +28,7 @@ import { useEffect, useState } from 'react';
 import { getData } from '@/utils/requests/dataQuery';
 import { Combobox } from '@/components/ui/combobox';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   studentId: z.string().uuid(),
@@ -79,7 +80,7 @@ export default function AttendanceForm({
   async function onSubmit(values: z.infer<typeof formSchema>) {
 
     const method = edit ? 'PUT' : 'POST'
-    const url = edit ? `/api/attendances/${initialData?.id}` : '/api/attendances'
+    const url = edit ? `/api/attendances/${id}` : '/api/attendances'
     const payload = edit ? 
       { ...values, id, markedBy: values.teacherId } 
     : { ...values, markedBy: values.teacherId }

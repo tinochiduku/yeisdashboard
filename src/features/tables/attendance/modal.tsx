@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import AttendanceForm from "./form";
+import { useRouter } from "next/navigation";
 
 export default function AttendanceModal ({ data }:any) {
     const _records = data.status
@@ -12,11 +13,11 @@ export default function AttendanceModal ({ data }:any) {
     const initialData = {
         studentId:  data.id,
         classId:  data.classId,
-        subjectId:  _records[0].subjectId || '',
-        teacherId: _records[0].teacherId || '',
+        subjectId:  _records[0]?.subjectId || '',
+        teacherId: _records[0]?.teacherId || '',
         status:  attendance,
-        remarks:  _records[0].remarks || '',
-        markedBy:  _records[0].markedBy || '' 
+        remarks:  _records[0]?.remarks || '',
+        markedBy:  _records[0]?.markedBy || '' 
     }
 
     return (
@@ -47,7 +48,6 @@ export default function AttendanceModal ({ data }:any) {
                         and remove your data from our servers.
                     </DialogDescription>
                 </DialogHeader> */}
-                <span>{_records[0]?.id}</span>
                 <AttendanceForm pageTitle="Mark Attendance" id={_records[0]?.id} initialData={initialData} />
                 <DialogFooter>
                     <DialogClose asChild>
