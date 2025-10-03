@@ -91,12 +91,16 @@ const DataTables = ({id, url, initialData}: any) => {
     
     case '/students/admissions':
       return <AdmissionsPage />;
+
     case '/students/attendance':
       return <AttendancePage />;
+
     case '/students/parents':
       return <ParentsPage />;
+
     case '/students/student-parents':
       return <StudentParentsPage />;
+      
     case '/students/siblings':
       return <SiblingsPage />;
     default:

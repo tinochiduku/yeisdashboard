@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 import { attendance } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
+import AttendanceModal from './modal';
 
 export const columns: ColumnDef<InferSelectModel<typeof attendance>>[] = [
   {
@@ -26,15 +27,25 @@ export const columns: ColumnDef<InferSelectModel<typeof attendance>>[] = [
     enableHiding: false
   },
   {
+    accessorKey: 'name',
+    header: 'NAME'
+  },
+  {
+    accessorKey: 'className',
+    header: 'CLASS'
+  },
+  {
     accessorKey: 'date',
     header: 'DATE'
   },
   {
     accessorKey: 'status',
-    header: 'STATUS'
+    header: 'STATUS', 
+    cell: ({row}) => <AttendanceModal data={row.original} />
   },
   {
     id: 'actions',
+    header: 'ACTIONS',
     cell: ({ row }) => <CellAction data={row.original} />
   }
 ];

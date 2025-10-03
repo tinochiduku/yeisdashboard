@@ -10,8 +10,35 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 const AdmissionsPage = () => {
+
+  const [admissions, setAddmissions] = useState([])
+
+    useEffect(() => {
+
+      let sub = false
+
+      const fetchClasses = async () => {
+        const res = await fetch(`/api/students`, { cache: 'no-store' });
+        if (!res.ok) {
+          toast.error('Failed to Fetch Admissions')
+        }
+        return res.json();
+      }
+
+      if (!sub) {
+        (async function() {
+            const data = await fetchClasses()
+            setAddmissions(data)
+        })()
+      }
+
+      return () => { sub = true}
+    }, [])
+
   return (
     <Card>
       <CardHeader>
@@ -29,7 +56,7 @@ const AdmissionsPage = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={[]} />
+        <DataTable columns={columns} data={admissions} />
       </CardContent>
     </Card>
   );

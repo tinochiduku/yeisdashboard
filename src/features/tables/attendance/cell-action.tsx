@@ -32,11 +32,11 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <DropdownMenuItem
             onClick={() => router.push(`/dashboard/attendance/${data.id}`)}
           >
-            <Icons.edit className='mr-2 h-4 w-4' /> Edit
+            <Icons.examinations className='mr-2 h-4 w-4' /> Records
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => {}}>
+          {/* <DropdownMenuItem onClick={() => {}}>
             <Icons.trash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

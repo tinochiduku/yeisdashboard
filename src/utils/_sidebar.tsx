@@ -89,15 +89,8 @@ const _sidebar = [
         children: []
       },
       {
-        title: 'Parents',
-        href: '/students/parents',
-        slug: 'parents',
-        icon: <Icons.user className='size-4' />,
-        children: []
-      },
-      {
         title: 'Student Parents',
-        href: '/students/student-parents',
+        href: '/students/parents',
         slug: 'student-parents',
         icon: <Icons.employee className='size-4' />,
         children: []
