@@ -95,13 +95,13 @@ const _sidebar = [
         icon: <Icons.employee className='size-4' />,
         children: []
       },
-      {
-        title: 'Siblings',
-        href: '/students/siblings',
-        slug: 'siblings',
-        icon: <Icons.user className='size-4' />,
-        children: []
-      }
+      // {
+      //   title: 'Siblings',
+      //   href: '/students/siblings',
+      //   slug: 'siblings',
+      //   icon: <Icons.user className='size-4' />,
+      //   children: []
+      // }
     ]
   },
   {
@@ -118,27 +118,27 @@ const _sidebar = [
         icon: <Icons.staff className='size-4' />,
         children: []
       },
-      {
-        title: 'Teachers',
-        href: '/staff/teachers',
-        slug: 'teachers',
-        icon: <Icons.user className='size-4' />,
-        children: []
-      },
-      {
-        title: 'Non-Teaching',
-        href: '/staff/non-teaching',
-        slug: 'non-teaching',
-        icon: <Icons.user className='size-4' />,
-        children: []
-      },
-      {
-        title: 'Attendance',
-        href: '/staff/staff-attendance',
-        slug: 'staff-attendance',
-        icon: <Icons.clipboardCheck className='size-4' />,
-        children: []
-      }
+      // {
+      //   title: 'Teachers',
+      //   href: '/staff/teachers',
+      //   slug: 'teachers',
+      //   icon: <Icons.user className='size-4' />,
+      //   children: []
+      // },
+      // {
+      //   title: 'Non-Teaching',
+      //   href: '/staff/non-teaching',
+      //   slug: 'non-teaching',
+      //   icon: <Icons.user className='size-4' />,
+      //   children: []
+      // },
+      // {
+      //   title: 'Attendance',
+      //   href: '/staff/staff-attendance',
+      //   slug: 'staff-attendance',
+      //   icon: <Icons.clipboardCheck className='size-4' />,
+      //   children: []
+      // }
     ]
   },
   {

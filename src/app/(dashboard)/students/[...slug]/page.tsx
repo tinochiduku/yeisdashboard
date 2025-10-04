@@ -3,9 +3,7 @@ import { Heading } from '@/components/ui/heading';
 import AdmissionsPage from '@/features/tables/admissions';
 import AttendancePage from '@/features/tables/attendance';
 import ParentsPage from '@/features/tables/parents';
-import SiblingsPage from '@/features/tables/siblings';
-import StudentParentsPage from '@/features/tables/student-parents';
-import StudentsPage from '@/features/tables/students';
+import ParentForm from '@/features/tables/parents/form';
 import StudentForm from '@/features/tables/students/form';
 import _sidebar from '@/utils/_sidebar';
 import { getData } from '@/utils/requests/dataQuery';
@@ -21,7 +19,8 @@ export default function DynamicPage() {
   const { slug } = params;
 
   const id = {
-    student: searchParams.get('studentId')
+    student: searchParams.get('studentId'),
+    parent: searchParams.get('parentId')
   }
 
   const getPageTitle = () => {
@@ -48,6 +47,13 @@ export default function DynamicPage() {
               });
               setInitialData({ student: _student})
               break;
+            case '/students/parents/edit':
+              const _parent = await getData({ 
+                title: 'Fetch Parent', 
+                url: `/api/parents/${id.parent}` 
+              });
+              setInitialData({ parent: _parent})
+              break;
             default: 
               break;
           }
@@ -67,7 +73,7 @@ export default function DynamicPage() {
     return () => { 
       isMounted = false; 
     };
-  }, [pathname, id.student])
+  }, [pathname, id.student, id.parent])
 
   return (
     <div>
@@ -97,12 +103,11 @@ const DataTables = ({id, url, initialData}: any) => {
 
     case '/students/parents':
       return <ParentsPage />;
+    case '/students/parents/new':
+      return <ParentForm pageTitle='Add Parent'/>;
+    case '/students/parents/edit':
+      return <ParentForm pageTitle='Edit Parent' id={id.parent} initialData={initialData?.parent} edit/>;
 
-    case '/students/student-parents':
-      return <StudentParentsPage />;
-      
-    case '/students/siblings':
-      return <SiblingsPage />;
     default:
       return null;
   }

@@ -26,7 +26,12 @@ const AttendancePage = () => {
             url: `/api/attendance-records` 
           });
   
-          setAttendance(_attendance)        
+          const date_today = new Date().toISOString().split('T')[0]
+          const current_day_entry = _attendance.map((attendance: any) => ({
+            ...attendance,
+            status: attendance.status.filter(({date}: any) => new Date(date).toDateString() === new Date(date_today).toDateString())
+          }))
+          setAttendance(current_day_entry)        
       }
   
       if (!sub) {
