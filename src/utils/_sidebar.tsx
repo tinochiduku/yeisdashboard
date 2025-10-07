@@ -169,13 +169,13 @@ const _sidebar = [
         icon: <Icons.certificates className='size-4' />,
         children: []
       },
-      {
-        title: 'Results',
-        href: '/examinations/results',
-        slug: 'results',
-        icon: <Icons.post className='size-4' />,
-        children: []
-      }
+      // {
+      //   title: 'Results',
+      //   href: '/examinations/results',
+      //   slug: 'results',
+      //   icon: <Icons.post className='size-4' />,
+      //   children: []
+      // }
     ]
   },
   {

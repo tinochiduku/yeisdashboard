@@ -1,65 +1,149 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { feeStructure, feeType } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
+import DynamicForm from '@/components/form/dynamic-form';
+import { FieldConfig } from '@/components/form/field-config';
+import { useApiData } from '@/hooks/use-apidata';
 
 const formSchema = z.object({
-  name: z.string(),
-  feeType: z.enum(feeType.enumValues),
-  amount: z.coerce.number(),
-  dueDate: z.string(),
-  isActive: z.boolean().default(true),
-  description: z.string().optional()
+  schoolId: z.string().uuid("Invalid school ID").min(1, "School is required"),
+  classId: z.string().uuid("Invalid class ID").min(1, "Class is required"),
+  academicYearId: z.string().uuid("Invalid academic year ID").min(1, "Academic year is required"),
+  feeType: z.enum(feeType.enumValues, {
+    required_error: "Fee type is required",
+  }),
+  name: z.string().min(1, "Name is required").max(255, "Name must be less than 255 characters"),
+  amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
+  dueDate: z.string().min(1, "Due date is required"),
+  isOptional: z.boolean().default(false),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true)
 });
-
 export default function FeeStructureForm({
+  id,
+  edit,
   initialData,
   pageTitle
 }: {
-  initialData: InferSelectModel<typeof feeStructure> | null;
+  id?: string
+  edit?: boolean
+  initialData?: InferSelectModel<typeof feeStructure> | null;
   pageTitle: string;
 }) {
+
+  const { data, isLoading, error} = useApiData({
+    endpoints: ['schools', 'academicYears', 'classes']
+  })
+
+  const schools = (data.schools ?? []).map((item) => ({label: item.name, value: item.id}))
+  const classes = (data.classes ?? []).map((item) => ({label: item.name, value: item.id}))
+  const years = (data.academicYears ?? []).map((item) => ({label: item.name, value: item.id}))
+
+  const feeStructureConfig: FieldConfig[] = [
+    {
+      name: 'schoolId',
+      label: 'School',
+      type: 'combobox',
+      options: schools,
+      placeholder: 'Enter School',
+      required: true,
+      colSpan: 1
+    },
+    {
+      name: 'classId',
+      label: 'Class',
+      type: 'combobox',
+      options: classes,
+      placeholder: 'Select Class',
+      required: true,
+      colSpan: 1
+    },
+    {
+      name: 'academicYearId',
+      label: 'Academic Year',
+      type: 'combobox',
+      options: years,
+      placeholder: 'Enter Academic Year',
+      required: true,
+      colSpan: 1
+    },
+    {
+      name: 'name',
+      label: 'Fee Name',
+      type: 'input',
+      placeholder: 'Enter fee name',
+      required: true,
+      colSpan: 1
+    },
+    {
+      name: 'feeType',
+      label: 'Fee Type',
+      type: 'select',
+      required: true,
+      options: [
+        { label: 'Tuition', value: 'tuition' },
+        { label: 'Hostel', value: 'hostel' },
+        { label: 'Transport', value: 'transport' },
+        { label: 'Activity', value: 'activity' },
+        { label: 'Exam', value: 'exam' },
+        { label: 'Library', value: 'library' },
+        { label: 'Lab', value: 'lab' },
+        { label: 'Other', value: 'other' }
+      ],
+      colSpan: 1
+    },
+    {
+      name: 'amount',
+      label: 'Amount',
+      type: 'input',
+      placeholder: 'Enter fee amount',
+      required: true,
+      colSpan: 1
+    },
+    {
+      name: 'dueDate',
+      label: 'Due Date',
+      type: 'date',
+      colSpan: 1
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      placeholder: 'Enter fee description',
+      colSpan: 2
+    },
+    {
+      name: 'isOptional',
+      label: 'Optional Fee',
+      type: 'checkbox',
+      colSpan: 1
+    },
+    {
+      name: 'isActive',
+      label: 'Active Status',
+      type: 'checkbox',
+      colSpan: 1
+    }
+  ];
+  
   const defaultValues = {
+    schoolId: initialData?.schoolId || '',
+    classId: initialData?.classId || '',
+    academicYearId: initialData?.academicYearId || '',
+    feeType: initialData?.feeType || feeType.enumValues[0],
     name: initialData?.name || '',
-    feeType: initialData?.feeType || 'tuition',
-    amount: initialData?.amount || 0,
-    dueDate: initialData?.dueDate || '',
-    isActive: initialData?.isActive || true,
-    description: initialData?.description || ''
+    amount: initialData?.amount ? parseFloat(initialData.amount) : 0,
+    dueDate: initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : '',
+    isOptional: initialData?.isOptional || false,
+    description: initialData?.description || '',
+    isActive: initialData?.isActive ?? true // Default to true if not provided
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    //@ts-ignore
-    defaultValues
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Form submission logic would be implemented here
-  }
 
   return (
     <Card className='mx-auto w-full'>
@@ -69,115 +153,15 @@ export default function FeeStructureForm({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-              <FormField
-                control={form.control}
-                name='name'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder='Enter name' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='feeType'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fee Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select fee type' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {feeType.enumValues.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='amount'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Amount</FormLabel>
-                    <FormControl>
-                      <Input type='number' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='dueDate'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date</FormLabel>
-                    <FormControl>
-                      <Input type='date' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='isActive'
-                render={({ field }) => (
-                  <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className='space-y-1 leading-none'>
-                      <FormLabel>
-                        Active
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name='description'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder='Enter description'
-                      className='resize-none'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type='submit'>Add Fee Structure</Button>
-          </form>
-        </Form>
+        <DynamicForm
+          id={id}
+          edit={edit}
+          defaultValues={defaultValues}
+          formConfig={feeStructureConfig}
+          pageTitle={pageTitle}
+          apiBasePath='/api/fee-structures'
+          formSchema={formSchema}
+        />
       </CardContent>
     </Card>
   );

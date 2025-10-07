@@ -1,60 +1,160 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { grades, gradeScale } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { FieldConfig } from '@/components/form/field-config';
+import { useApiData } from '@/hooks/use-apidata';
+import DynamicForm from '@/components/form/dynamic-form';
 
 const formSchema = z.object({
-  marksObtained: z.coerce.number(),
-  grade: z.enum(gradeScale.enumValues),
-  percentage: z.coerce.number(),
+  studentId: z.string().uuid("Invalid student ID").min(1, "Student is required"),
+  examId: z.string().uuid("Invalid exam ID").min(1, "Exam is required"),
+  subjectId: z.string().uuid("Invalid subject ID").min(1, "Subject is required"),
+  marksObtained: z.coerce.number().min(0, "Marks obtained cannot be negative"),
+  maxMarks: z.coerce.number().min(1, "Maximum marks must be at least 1"),
+  grade: z.enum(gradeScale.enumValues, {
+    required_error: "Grade is required",
+  }),
+  percentage: z.coerce.number().min(0, "Percentage cannot be negative").max(100, "Percentage cannot exceed 100"),
+  remarks: z.string().optional(),
+  teacherId: z.string().uuid("Invalid teacher ID").min(1, "Teacher is required"),
   isPublished: z.boolean().default(false)
-});
+  })
+  .refine((data) => data.marksObtained <= data.maxMarks, {
+    message: "Marks obtained cannot exceed maximum marks",
+    path: ["marksObtained"]
+  })
+  .refine((data) => {
+    const calculatedPercentage = (data.marksObtained / data.maxMarks) * 100;
+    // Allow small rounding differences (0.01%)
+    return Math.abs(calculatedPercentage - data.percentage) < 0.01;
+  }, {
+    message: "Percentage does not match calculated value (marks obtained / max marks × 100)",
+    path: ["percentage"]
+  });
 
 export default function GradeForm({
+  id,
+  edit,
   initialData,
   pageTitle
 }: {
-  initialData: InferSelectModel<typeof grades> | null;
+  id?: string
+  edit?: boolean
+  initialData?: InferSelectModel<typeof grades> | null;
   pageTitle: string;
 }) {
+  const { data, isLoading, error } = useApiData({
+    endpoints: ['exams', 'students', 'subjects', 'teachers']
+  });
+
+  const exams = (data.exams ?? []).map((item:any) => ({ value: item.id, label: item.name}))
+  const _students = (data.students ?? []).map((item:any) => ({...item, name: `${item.firstName} ${item.lastName}`}))
+  const students = (_students ?? []).map((item:any) => ({ value: item.id, label: item.name}))
+  const subjects = (data.subjects ?? []).map((item:any) => ({ value: item.id, label: item.name}))
+  const teachers = (data.teachers ?? []).map((item:any) => ({ value: item.id, label: item.name}))
+
+  const gradeConfig: FieldConfig[] = [
+    {
+      name: 'studentId',
+      label: 'Student',
+      type: 'combobox',
+      options: students,
+      required: true,
+      placeholder: 'Select student',
+      colSpan: 1
+    },
+    {
+      name: 'examId',
+      label: 'Exam',
+      type: 'combobox',
+      options: exams,
+      required: true,
+      placeholder: 'Select exam',
+      colSpan: 1
+    },
+    {
+      name: 'subjectId',
+      label: 'Subject',
+      type: 'combobox',
+      options: subjects,
+      required: true,
+      placeholder: 'Select subject',
+      colSpan: 1
+    },
+    {
+      name: 'marksObtained',
+      label: 'Marks Obtained',
+      type: 'input',
+      placeholder: 'Enter marks obtained',
+      colSpan: 1
+    },
+    {
+      name: 'maxMarks',
+      label: 'Maximum Marks',
+      type: 'input',
+      required: true,
+      placeholder: 'Enter maximum marks',
+      colSpan: 1
+    },
+    {
+      name: 'grade',
+      label: 'Grade',
+      type: 'select',
+      options: [
+        { label: 'A', value: 'A' },
+        { label: 'B', value: 'B' },
+        { label: 'C', value: 'C' },
+        { label: 'D', value: 'D' },
+        { label: 'F', value: 'F' }
+      ],
+      colSpan: 1
+    },
+    {
+      name: 'percentage',
+      label: 'Percentage',
+      type: 'input',
+      placeholder: 'Enter percentage',
+      colSpan: 1
+    },
+    {
+      name: 'remarks',
+      label: 'Remarks',
+      type: 'textarea',
+      placeholder: 'Enter remarks',
+      colSpan: 2
+    },
+    {
+      name: 'teacherId',
+      label: 'Teacher',
+      type: 'combobox',
+      options: teachers,
+      placeholder: 'Select teacher',
+      colSpan: 1
+    },
+    {
+      name: 'isPublished',
+      label: 'Publish Results',
+      type: 'checkbox',
+      colSpan: 1
+    }
+  ];
+
   const defaultValues = {
-    marksObtained: initialData?.marksObtained || 0,
-    grade: initialData?.grade || 'A',
-    percentage: initialData?.percentage || 0,
+    studentId: initialData?.studentId || '',
+    examId: initialData?.examId || '',
+    subjectId: initialData?.subjectId || '',
+    marksObtained: initialData?.marksObtained ? parseFloat(initialData.marksObtained) : 0,
+    maxMarks: initialData?.maxMarks || 100,
+    grade: initialData?.grade || gradeScale.enumValues[0],
+    percentage: initialData?.percentage ? parseFloat(initialData.percentage) : 0,
+    remarks: initialData?.remarks || '',
+    teacherId: initialData?.teacherId || '',
     isPublished: initialData?.isPublished || false
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    //@ts-ignore
-    defaultValues
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Form submission logic would be implemented here
-  }
 
   return (
     <Card className='mx-auto w-full'>
@@ -64,85 +164,15 @@ export default function GradeForm({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-              <FormField
-                control={form.control}
-                name='marksObtained'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Marks Obtained</FormLabel>
-                    <FormControl>
-                      <Input type='number' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='grade'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Grade</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select grade' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {gradeScale.enumValues.map((grade) => (
-                          <SelectItem key={grade} value={grade}>
-                            {grade}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='percentage'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Percentage</FormLabel>
-                    <FormControl>
-                      <Input type='number' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='isPublished'
-                render={({ field }) => (
-                  <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className='space-y-1 leading-none'>
-                      <FormLabel>
-                        Published
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Button type='submit'>Add Grade</Button>
-          </form>
-        </Form>
+        <DynamicForm
+          id={id}
+          edit={edit}
+          defaultValues={defaultValues}
+          formConfig={gradeConfig}
+          pageTitle={pageTitle}
+          apiBasePath='/api/grades'
+          formSchema={formSchema}
+        />
       </CardContent>
     </Card>
   );

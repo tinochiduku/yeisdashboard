@@ -1,22 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-} from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { students, gender } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
-import { useEffect, useState } from 'react';
-import { getData, postData, putData } from '@/utils/requests/dataQuery';
-import { FieldConfig } from '@/types/field-config';
+import { FieldConfig } from '@/components/form/field-config';
 
-import { toast } from 'sonner';
-import { FieldGenerator } from '@/utils/requests/form-generator';
 import { useApiData } from '@/hooks/use-apidata';
+import DynamicForm from '@/components/form/dynamic-form';
 
 const formSchema = z.object({
   userId: z.string().uuid(),
@@ -56,7 +47,6 @@ export default function StudentForm({
   edit?: boolean;
 }) {
 
-  const [ loading, setLoading ] = useState(false)
   const { data, isLoading, error } = useApiData({
   endpoints: ['users', 'schools', 'classes']
 });
@@ -260,33 +250,6 @@ export default function StudentForm({
       isActive: initialData?.isActive || true
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    values: defaultValues
-  });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const url = edit && id ? `/api/students/${id}` : '/api/students';
-    const payload = edit && id ? { ...values, id } : values;
-
-    try {
-      setLoading(true)
-
-      if (edit && id) {
-        await putData({title: 'Edit Student', url, values: payload})
-      }
-
-      if (!edit) {
-        await postData({title: 'Add Student', url, values: payload})
-      }
-
-
-    } finally {
-      setLoading(false)
-    }
-
-  }
-
   return (
     <Card className='mx-auto w-full'>
       <CardHeader>
@@ -295,20 +258,15 @@ export default function StudentForm({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-              {studentFormConfig.map((config) => (
-                  <FieldGenerator
-                    key={config.name}
-                    config={config}
-                    form={form}
-                  />
-                ))}
-            </div>
-            <Button disabled={loading} type='submit'>{edit ? 'Edit Student' : 'Add Student'}</Button>
-          </form>
-        </Form>
+        <DynamicForm
+          id={id}
+          edit={edit}
+          defaultValues={defaultValues}
+          formConfig={studentFormConfig}
+          pageTitle={pageTitle}
+          apiBasePath='/api/students'
+          formSchema={formSchema}
+        />
       </CardContent>
     </Card>
   );

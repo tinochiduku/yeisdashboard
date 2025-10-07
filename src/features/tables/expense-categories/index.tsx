@@ -10,8 +10,16 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import { useRouter } from 'next/navigation';
+import { useApiData } from '@/hooks/use-apidata';
 
 const ExpenseCategoriesPage = () => {
+
+  const router = useRouter()
+    const {data, isLoading, error} = useApiData({
+      endpoints: ['expenseCategories']
+    })
+
   return (
     <Card>
       <CardHeader>
@@ -22,14 +30,14 @@ const ExpenseCategoriesPage = () => {
               A list of all the expense categories in your school.
             </CardDescription>
           </div>
-          <Button>
+          <Button onClick={() => router.push('/finance/expense-categories/new')}>
             <Icons.plus className='mr-2 size-4' />
             Add Expense Category
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={[]} />
+        <DataTable columns={columns} data={(data.expenseCategories ?? [])} />
       </CardContent>
     </Card>
   );

@@ -5,10 +5,10 @@ import AttendancePage from '@/features/tables/attendance';
 import ParentsPage from '@/features/tables/parents';
 import ParentForm from '@/features/tables/parents/form';
 import StudentForm from '@/features/tables/students/form';
+import { useDataFetcher } from '@/hooks/use-datafetcher';
 import _sidebar from '@/utils/_sidebar';
-import { getData } from '@/utils/requests/dataQuery';
 import { useParams, usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function DynamicPage() {
@@ -18,10 +18,10 @@ export default function DynamicPage() {
   const searchParams = useSearchParams();
   const { slug } = params;
 
-  const id = {
+  const id = useMemo(() => ({
     student: searchParams.get('studentId'),
     parent: searchParams.get('parentId')
-  }
+  }), [searchParams]);
 
   const getPageTitle = () => {
     for (const section of _sidebar) {
@@ -34,46 +34,37 @@ export default function DynamicPage() {
     return 'Page';
   };
 
+  const { fetchData } = useDataFetcher({
+    routeConfigs: [
+      {
+        path: '/students/edit',
+        idKey: 'student',
+        dataKey: 'student',
+        title: 'Fetch Student',
+        apiPath: '/api/students'
+      },
+      {
+        path: '/parents/edit',
+        idKey: 'parent',
+        dataKey: 'parent',
+        title: 'Fetch Parent',
+        apiPath: '/api/parents'
+      }
+    ],
+    defaultErrorHandler: (error: any) => toast.error(`Failed to fetch: ${error}`)
+  });
+
   useEffect(() => {
     let isMounted = true;
-    
-    const fetchData = async () => {
-        try {
-          switch(pathname) {
-            case '/students/edit':
-              const _student = await getData({ 
-                title: 'Fetch Student', 
-                url: `/api/students/${id.student}` 
-              });
-              setInitialData({ student: _student})
-              break;
-            case '/students/parents/edit':
-              const _parent = await getData({ 
-                title: 'Fetch Parent', 
-                url: `/api/parents/${id.parent}` 
-              });
-              setInitialData({ parent: _parent})
-              break;
-            default: 
-              break;
-          }
-
-
-        } catch (error) {
-          toast.error(`Failed to fetch data: ${error}`);
-        }
-
-  };
 
     if (isMounted) {
-      fetchData();
+      fetchData(pathname, id, setInitialData)
     }
-  
   
     return () => { 
       isMounted = false; 
     };
-  }, [pathname, id.student, id.parent])
+  }, [])
 
   return (
     <div>

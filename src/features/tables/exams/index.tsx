@@ -10,8 +10,17 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import { useRouter } from 'next/navigation';
+import { useApiData } from '@/hooks/use-apidata';
 
 const ExamsPage = () => {
+
+  const router = useRouter()
+
+    const { data, isLoading, error } = useApiData({
+      endpoints: ['exams']
+    });
+
   return (
     <Card>
       <CardHeader>
@@ -22,14 +31,14 @@ const ExamsPage = () => {
               A list of all the exams in your school.
             </CardDescription>
           </div>
-          <Button>
+          <Button onClick={() => router.push('/examinations/exams/new')}>
             <Icons.plus className='mr-2 size-4' />
             Add Exam
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={[]} />
+        <DataTable columns={columns} data={(data.exams ?? [])} />
       </CardContent>
     </Card>
   );

@@ -1,64 +1,171 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { expenses, paymentMethod } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { FieldConfig } from '@/components/form/field-config';
+import DynamicForm from '@/components/form/dynamic-form';
+import { useApiData } from '@/hooks/use-apidata';
 
 const formSchema = z.object({
-  title: z.string(),
-  amount: z.coerce.number(),
-  expenseDate: z.string(),
+  categoryId: z.string().uuid("Please select a valid category"),
+  title: z.string().min(1, "Title is required").max(255, "Title too long"),
+  description: z.string().optional(),
+  amount: z.coerce.number().positive("Amount must be positive"),
+  expenseDate: z.string().min(1, "Expense date is required"),
   paymentMethod: z.enum(paymentMethod.enumValues),
-  status: z.string(),
-  description: z.string().optional()
+  vendorId: z.string().uuid("Please select a valid vendor").optional(),
+  status: z.enum(["pending", "approved", "rejected", "paid"] as const),
+  submittedBy: z.string().uuid("Please select a valid user").optional(),
+  approvedBy: z.string().uuid("Please select a valid user").optional(),
+  approvalDate: z.string().optional(),
+  rejectionReason: z.string().optional(),
 });
 
 export default function ExpenseForm({
+  id,
+  edit,
   initialData,
   pageTitle
 }: {
-  initialData: InferSelectModel<typeof expenses> | null;
+  id?: string
+  edit?: boolean
+  initialData?: InferSelectModel<typeof expenses> | null;
   pageTitle: string;
 }) {
-  const defaultValues = {
-    title: initialData?.title || '',
-    amount: initialData?.amount || 0,
-    expenseDate: initialData?.expenseDate || '',
-    paymentMethod: initialData?.paymentMethod || 'cash',
-    status: initialData?.status || '',
-    description: initialData?.description || ''
-  };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    //@ts-ignore
-    defaultValues
-  });
+   const { data, isLoading, error } = useApiData({
+      endpoints: ['vendors', 'expenseCategories', 'users']
+    }) 
+  
+    const vendors = (data.vendors ?? []).map((item) => ({label: item.contactPerson, value: item.id}))
+    const expenseCategories = (data.expenseCategories ?? []).map((item) => ({label: item.name, value: item.id}))
+    const _users = (data.users ?? []).filter(({ isPending }) => isPending === false )
+    const users = _users.map((item) => ({label: `${item.firstName} ${item.lastName}`, value: item.userId}))
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Form submission logic would be implemented here
+  const expenseConfig: FieldConfig[] = [
+  {
+    name: 'categoryId',
+    label: 'Expense Category',
+    type: 'select',
+    required: true,
+    placeholder: 'Select expense category',
+    colSpan: 1,
+    options: expenseCategories,
+  },
+  {
+    name: 'title',
+    label: 'Expense Title',
+    type: 'input',
+    placeholder: 'Enter expense title',
+    required: true,
+    colSpan: 1
+  },
+  {
+    name: 'description',
+    label: 'Description',
+    type: 'textarea',
+    placeholder: 'Enter expense description',
+    colSpan: 2
+  },
+  {
+    name: 'amount',
+    label: 'Amount',
+    type: 'input',
+    placeholder: 'Enter expense amount',
+    required: true,
+    colSpan: 1
+  },
+  {
+    name: 'expenseDate',
+    label: 'Expense Date',
+    type: 'date',
+    required: true,
+    colSpan: 1
+  },
+  {
+    name: 'paymentMethod',
+    label: 'Payment Method',
+    type: 'select',
+    required: true,
+    placeholder: 'Select payment method',
+    colSpan: 1,
+    options: [
+      { label: 'Cash', value: 'cash' },
+      { label: 'Bank Transfer', value: 'bank_transfer' },
+      { label: 'Mobile Money', value: 'mobile_money' },
+      { label: 'Card', value: 'card' },
+      { label: 'Cheque', value: 'cheque' }
+    ]
+  },
+  {
+    name: 'vendorId',
+    label: 'Vendor',
+    type: 'select',
+    placeholder: 'Select vendor',
+    colSpan: 1,
+    options: vendors,
+  },
+  {
+    name: 'status',
+    label: 'Expense Status',
+    type: 'select',
+    required: true,
+    placeholder: 'Select status',
+    colSpan: 1,
+    options: [
+      { label: 'Pending', value: 'pending' },
+      { label: 'Approved', value: 'approved' },
+      { label: 'Rejected', value: 'rejected' },
+      { label: 'Paid', value: 'paid' }
+    ]
+  },
+  {
+    name: 'submittedBy',
+    label: 'Submitted By',
+    type: 'select',
+    placeholder: 'Select submitter',
+    colSpan: 1,
+    options: users,
+  },
+  {
+    name: 'approvedBy',
+    label: 'Approved By',
+    type: 'select',
+    placeholder: 'Select approver',
+    colSpan: 1,
+    options: users,
+  },
+  {
+    name: 'approvalDate',
+    label: 'Approval Date',
+    type: 'date',
+    colSpan: 1
+  },
+  {
+    name: 'rejectionReason',
+    label: 'Rejection Reason',
+    type: 'textarea',
+    placeholder: 'Enter reason for rejection',
+    colSpan: 2
   }
+];
+
+  const defaultValues = {
+  categoryId: initialData?.categoryId || '',
+  title: initialData?.title || '',
+  description: initialData?.description || '',
+  amount: initialData?.amount ? Number(initialData.amount) : 0,
+  expenseDate: initialData?.expenseDate ? new Date(initialData.expenseDate).toISOString().split('T')[0] : '',
+  paymentMethod: initialData?.paymentMethod || 'cash',
+  vendorId: initialData?.vendorId || '',
+  status: initialData?.status || 'pending',
+  submittedBy: initialData?.submittedBy || '',
+  approvedBy: initialData?.approvedBy || '',
+  approvalDate: initialData?.approvalDate ? new Date(initialData.approvalDate).toISOString().split('T')[0] : '',
+  rejectionReason: initialData?.rejectionReason || '',
+};
 
   return (
     <Card className='mx-auto w-full'>
@@ -68,109 +175,15 @@ export default function ExpenseForm({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-              <FormField
-                control={form.control}
-                name='title'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder='Enter title' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='amount'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Amount</FormLabel>
-                    <FormControl>
-                      <Input type='number' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='expenseDate'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Expense Date</FormLabel>
-                    <FormControl>
-                      <Input type='date' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='paymentMethod'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select payment method' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {paymentMethod.enumValues.map((method) => (
-                          <SelectItem key={method} value={method}>
-                            {method}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='status'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <FormControl>
-                      <Input placeholder='Enter status' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name='description'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder='Enter description'
-                      className='resize-none'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type='submit'>Add Expense</Button>
-          </form>
-        </Form>
+        <DynamicForm
+          id={id}
+          edit={edit}
+          defaultValues={defaultValues}
+          formConfig={expenseConfig}
+          pageTitle={pageTitle}
+          apiBasePath='/api/expenses'
+          formSchema={formSchema}
+        />
       </CardContent>
     </Card>
   );

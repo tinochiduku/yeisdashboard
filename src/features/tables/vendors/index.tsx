@@ -10,8 +10,15 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import { useRouter } from 'next/navigation';
+import { useApiData } from '@/hooks/use-apidata';
 
 const VendorsPage = () => {
+  const router = useRouter()
+  const { data, isLoading, error} = useApiData({
+    endpoints: ['vendors']
+  })
+
   return (
     <Card>
       <CardHeader>
@@ -22,14 +29,14 @@ const VendorsPage = () => {
               A list of all the vendors in your school.
             </CardDescription>
           </div>
-          <Button>
+          <Button onClick={() => router.push('/vendors/new')}>
             <Icons.plus className='mr-2 size-4' />
             Add Vendor
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={[]} />
+        <DataTable columns={columns} data={(data.vendors ?? [])} />
       </CardContent>
     </Card>
   );

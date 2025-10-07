@@ -1,59 +1,150 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { feePayments, paymentMethod, paymentStatus } from '@/db/schema';
+import { feePayments, feeStructure, paymentMethod, paymentStatus, students } from '@/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import DynamicForm from '@/components/form/dynamic-form';
+import { FieldConfig } from '@/components/form/field-config';
+import { useApiData } from '@/hooks/use-apidata';
 
 const formSchema = z.object({
+  studentId: z.string().uuid(),
+  feeStructureId: z.string().uuid(),
+  processedBy: z.string().uuid(),
+  transactionId: z.string(),
+  receiptNumber: z.coerce.number(),
   amount: z.coerce.number(),
   paymentDate: z.string(),
+  remarks: z.string().optional(),
   paymentMethod: z.enum(paymentMethod.enumValues),
   status: z.enum(paymentStatus.enumValues)
 });
 
 export default function FeePaymentForm({
+  id,
+  edit,
   initialData,
   pageTitle
 }: {
-  initialData: InferSelectModel<typeof feePayments> | null;
+  id?: string
+  edit?: boolean
+  initialData?: InferSelectModel<typeof feePayments> | null;
   pageTitle: string;
 }) {
+
+  const { data, isLoading, error } = useApiData({
+    endpoints: ['students', 'feeStructures', 'users']
+  }) 
+
+  const students = (data.students ?? []).map((item) => ({label: `${item.firstName} ${item.lastName}`, value: item.id}))
+  const feeStructures = (data.feeStructures ?? []).map((item) => ({label: item.name, value: item.id}))
+  const _users = (data.users ?? []).filter(({ isPending }) => isPending === false )
+  const users = _users.map((item) => ({label: `${item.firstName} ${item.lastName}`, value: item.userId}))
+
+  const feePaymentConfig: FieldConfig[] = [
+    {
+      name: 'studentId',
+      label: 'Student',
+      type: 'select',
+      options: students,
+      required: true,
+      placeholder: 'Select student',
+      colSpan: 1
+    },
+    {
+      name: 'feeStructureId',
+      label: 'Fee Structure',
+      type: 'select',
+      options: feeStructures,
+      required: true,
+      placeholder: 'Select fee structure',
+      colSpan: 1
+    },
+    {
+      name: 'amount',
+      label: 'Amount',
+      type: 'input',
+      required: true,
+      placeholder: 'Enter payment amount',
+      colSpan: 1
+    },
+    {
+      name: 'paymentDate',
+      label: 'Payment Date',
+      type: 'date',
+      required: true,
+      colSpan: 1
+    },
+    {
+      name: 'paymentMethod',
+      label: 'Payment Method',
+      type: 'select',
+      required: true,
+      options: [
+        { label: 'Cash', value: 'cash' },
+        { label: 'Bank Transfer', value: 'bank_transfer' },
+        { label: 'Mobile Money', value: 'mobile_money' },
+        { label: 'Card', value: 'card' },
+        { label: 'Cheque', value: 'cheque' }
+      ],
+      colSpan: 1
+    },
+    {
+      name: 'transactionId',
+      label: 'Transaction ID',
+      type: 'input',
+      placeholder: 'Enter transaction ID',
+      colSpan: 1
+    },
+    {
+      name: 'receiptNumber',
+      label: 'Receipt Number',
+      type: 'input',
+      placeholder: 'Enter receipt number',
+      colSpan: 1
+    },
+    {
+      name: 'remarks',
+      label: 'Remarks',
+      type: 'textarea',
+      placeholder: 'Enter payment remarks',
+      colSpan: 2
+    },
+     {
+      name: 'processedBy',
+      label: 'Processed By',
+      type: 'combobox',
+      options: users,
+      required: true,
+      placeholder: 'Select Processor',
+      colSpan: 1
+    },
+    {
+      name: 'status',
+      label: 'Payment Status',
+      type: 'select',
+      options: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Paid', value: 'paid' },
+        { label: 'Overdue', value: 'overdue' },
+        { label: 'Partial', value: 'partial' }
+      ],
+      colSpan: 1
+    }
+  ];
+
   const defaultValues = {
+    studentId: initialData?.studentId || '',
+    feeStructureId: initialData?.feeStructureId || '',
+    remarks: initialData?.remarks || '',
+    processedBy: initialData?.processedBy || '',
+    transactionId: initialData?.transactionId || '',
+    receiptNumber: initialData?.receiptNumber || '',
     amount: initialData?.amount || 0,
     paymentDate: initialData?.paymentDate || '',
     paymentMethod: initialData?.paymentMethod || 'cash',
     status: initialData?.status || 'pending'
   };
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    //@ts-ignore
-    defaultValues
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Form submission logic would be implemented here
-  }
 
   return (
     <Card className='mx-auto w-full'>
@@ -63,93 +154,15 @@ export default function FeePaymentForm({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-              <FormField
-                control={form.control}
-                name='amount'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Amount</FormLabel>
-                    <FormControl>
-                      <Input type='number' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='paymentDate'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Date</FormLabel>
-                    <FormControl>
-                      <Input type='date' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='paymentMethod'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select payment method' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {paymentMethod.enumValues.map((method) => (
-                          <SelectItem key={method} value={method}>
-                            {method}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='status'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select status' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {paymentStatus.enumValues.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Button type='submit'>Add Payment</Button>
-          </form>
-        </Form>
+        <DynamicForm
+          id={id}
+          edit={edit}
+          defaultValues={defaultValues}
+          formConfig={feePaymentConfig}
+          pageTitle={pageTitle}
+          apiBasePath='/api/fee-payments'
+          formSchema={formSchema}
+        />
       </CardContent>
     </Card>
   );

@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Combobox } from '@/components/ui/combobox';
 import { Textarea } from '@/components/ui/textarea';
-import { FieldConfig } from '@/types/field-config';
+import { FieldConfig } from '@/components/form/field-config';
 
 interface FieldGeneratorProps {
   config: FieldConfig;
@@ -73,7 +73,7 @@ export function FieldGenerator({ config, form }: FieldGeneratorProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{label}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className='w-full'>
                       <SelectValue placeholder={placeholder} />

@@ -63,7 +63,7 @@ export default function SchoolForm({
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues
+    values: defaultValues
   });
 
   const [loading, setLoading] = useState(false);
